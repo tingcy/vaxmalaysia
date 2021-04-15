@@ -157,3 +157,11 @@ if data_file is not None:
     st.title('Chart')
 
     st.altair_chart(final, use_container_width=True)
+
+    filter_list = ['Eligible for Vaccination', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'Cansino Cummulative', 'Sputnik Cummulative', 'Total Vaccine','Allocation for 1st Dose', 'Allocation for 2nd Dose']
+    results = results[results.variable.isin(filter_list)] 
+    fig = px.line(results, x="Date", y="value", color="variable", title='Malaysia: Estimated Vaccination Registration vs. Vaccine Supply', 
+            labels=dict(value="Value"), template="none",
+            width=1200, height=700)
+    
+    st.plotly_chart(fig, use_container_width=True)
