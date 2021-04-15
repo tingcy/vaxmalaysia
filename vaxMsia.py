@@ -80,11 +80,19 @@ if data_file is not None:
 
     results['Total Vaccine'] = results['Pfizer Cummulative'] + results['Sinovac Cummulative'] + results['Cansino Cummulative'] + results['AZ Cummulative'] 
     results = results[results.Date>'2020-12-15']
-    
+
+    def allocation(a, b, c):
+        if a < b:
+            return (a*c)
+        else:
+            return (b*c)
+
+    results['Allocation for 1st Dose'] = results.apply(lambda row : allocation(row['Total Vaccine'], row['Registered for Vaccination'], 0.7), axis = 1)
+    results['Allocation for 2nd Dose'] = results['Total Vaccine'] - results['Allocation for 1st Dose']
+        
     st.dataframe(results)
 
-    results = pd.melt(results, id_vars=['Date'], value_vars=['Eligible', 'Ignore', 'Registered','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Total Vaccine'])   
-    
+    results = pd.melt(results, id_vars=['Date'], value_vars=['Eligible for Vaccination', 'Registered for Vaccination','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Sputnik Cummulative', 'Total Vaccine', 'Allocation for 1st Dose', 'Allocation for 2nd Dose'])   
     myChart = alt.data_transformers.disable_max_rows()
     source = results[results.Date>'2020-10-01']
     #source = df_melt[df_melt.variable.isin(['E','I'])]
