@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd 
 import altair as alt
 from scipy.integrate import odeint
+import plotly.express as px
 
 st.set_page_config(layout="wide")
 
