@@ -55,6 +55,10 @@ if data_file is not None:
     dose_AZ = pd.read_excel(data_file, sheet_name='AZ')
     dose_AZ.Date = pd.to_datetime(dose_AZ.Date) 
 
+    # Sputnik
+    dose_Sputnik = pd.read_excel(data_file, sheet_name='Sputnik')
+    dose_Sputnik.Date = pd.to_datetime(dose_Sputnik.Date) 
+
     results = pd.merge(results, dose_pfizer, how="left", on=["Date"])
     results = results.fillna(0) 
     results = results.rename(columns = {'Dose': 'Pfizer'})
@@ -71,15 +75,20 @@ if data_file is not None:
     results = results.fillna(0) 
     results = results.rename(columns = {'Dose': 'AZ'})
 
+    results = pd.merge(results, dose_Sputnik, how="left", on=["Date"])
+    results = results.fillna(0) 
+    results = results.rename(columns = {'Dose': 'Sputnik'})
+
     results['Pfizer Cummulative']=results.Pfizer.cumsum()
     results['Sinovac Cummulative']=results.Sinovac.cumsum()
     results['Cansino Cummulative']=results.Cansino.cumsum()
     results['AZ Cummulative']=results.AZ.cumsum()
+    results['Sputnik Cummulative']=results.Sputnik.cumsum()
 
-    results = results[['Date', 'Eligible for Vaccination', 'Ignore', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative']]
+    results = results[['Date', 'Eligible for Vaccination', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Sputnik Cummulative']]
 
-    results['Total Vaccine'] = results['Pfizer Cummulative'] + results['Sinovac Cummulative'] + results['Cansino Cummulative'] + results['AZ Cummulative'] 
-    results = results[results.Date>'2020-12-15']
+    results['Total Vaccine'] = results['Pfizer Cummulative'] + results['Sinovac Cummulative'] + results['Cansino Cummulative'] + results['AZ Cummulative'] + results['Sputnik Cummulative']
+    results = results[(results.Date>'2020-12-15') & (results.Date<'2022-01-01')]
 
     def allocation(a, b, c):
         if a < b:
