@@ -44,6 +44,7 @@ results = pd.DataFrame({'Eligible for Vaccination': S, 'Ignore': I, 'Registered 
 results['Day'] = 1 + results.index
 results['Date']=pd.date_range(start='6/3/2020', periods= t_max+ 1)
 
+st.image('asm.png')
 st.title('Malaysia Vaccine Supply and Demand') 
 PrecAlloc = int(st.selectbox(
     'The Percentage of 1st Dose Allocation?',
