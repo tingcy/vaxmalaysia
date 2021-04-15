@@ -116,7 +116,7 @@ if data_file is not None:
         x= alt.X('Date', title='Day'),
         y= alt.Y('value', title='Value'),   
         color = alt.Color('variable', 
-                scale=alt.Scale(domain=['Eligible for Vaccination',  'Registered for Vaccination','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Total Vaccine']))
+                scale=alt.Scale(domain=['Eligible for Vaccination',  'Registered for Vaccination','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Total Vaccine', 'Allocation for 1st Dose', 'Allocation for 2nd Dose']))
     )
     # Transparent selectors across the chart. This is what tells us
     # the x-value of the cursor
