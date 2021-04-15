@@ -47,7 +47,7 @@ results['Date']=pd.date_range(start='6/3/2020', periods= t_max+ 1)
 st.title('Malaysia Vaccine Supply and Demand') 
 PrecAlloc = int(st.selectbox(
     'The Percentage of 1st Dose Allocation?',
-    ('50', '60', '70', '80')))/100
+    ('50', '60', '70', '80','90','100')))/100
 
 
 
