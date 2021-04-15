@@ -76,7 +76,7 @@ if data_file is not None:
     results['Cansino Cummulative']=results.Cansino.cumsum()
     results['AZ Cummulative']=results.AZ.cumsum()
 
-    results = results[['Date', 'Eligible', 'Ignore', 'Registered', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative']]
+    results = results[['Date', 'Eligible for Vaccination', 'Ignore', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative']]
 
     results['Total Vaccine'] = results['Pfizer Cummulative'] + results['Sinovac Cummulative'] + results['Cansino Cummulative'] + results['AZ Cummulative'] 
     results = results[results.Date>'2020-12-15']
@@ -107,7 +107,7 @@ if data_file is not None:
         x= alt.X('Date', title='Day'),
         y= alt.Y('value', title='Value'),   
         color = alt.Color('variable', 
-                scale=alt.Scale(domain=['Eligible',  'Registered','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Total Vaccine']))
+                scale=alt.Scale(domain=['Eligible for Vaccination',  'Registered for Vaccination','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Total Vaccine']))
     )
     # Transparent selectors across the chart. This is what tells us
     # the x-value of the cursor
