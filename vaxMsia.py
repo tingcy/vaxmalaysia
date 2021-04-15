@@ -7,12 +7,16 @@ import plotly.express as px
 
 st.set_page_config(layout="wide")
 
+# Differential Function -----------------------------
+
 def deriv(y, t, N, beta, gamma):
     S, I, R = y
     dSdt = -beta * S * I / N
     dIdt = beta * S * I / N - gamma * I
     dRdt = gamma * I
     return dSdt, dIdt, dRdt
+
+# Declaration for the Simulation ----------------------
 
 # Total population, N.
 N = 25000000
@@ -33,11 +37,20 @@ y0 = S0, I0, R0
 ret = odeint(deriv, y0, t, args=(N, beta, gamma))
 S, I, R = ret.T
 
+
+# Generating the DataFrame -------------------------------
+
 results = pd.DataFrame({'Eligible for Vaccination': S, 'Ignore': I, 'Registered for Vaccination': R} )
 results['Day'] = 1 + results.index
 results['Date']=pd.date_range(start='6/3/2020', periods= t_max+ 1)
 
 st.title('Malaysia Vaccine Supply and Demand') 
+PrecAlloc = int(st.selectbox(
+    'The Percentage of 1st Dose Allocation?',
+    ('50', '60', '70', '80')))/100
+
+
+
 data_file = st.file_uploader("Upload CSV", type=['xlsx'])
 if data_file is not None:
     # Pfizer
@@ -97,7 +110,7 @@ if data_file is not None:
         else:
             return (b*c)
 
-    results['Allocation for 1st Dose'] = results.apply(lambda row : allocation(row['Total Vaccine'], row['Registered for Vaccination'], 0.7), axis = 1)
+    results['Allocation for 1st Dose'] = results.apply(lambda row : allocation(row['Total Vaccine'], row['Registered for Vaccination'], PrecAlloc), axis = 1)
     results['Allocation for 2nd Dose'] = results['Total Vaccine'] - results['Allocation for 1st Dose']
         
     st.dataframe(results)
