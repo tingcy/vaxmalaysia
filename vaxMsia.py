@@ -32,7 +32,7 @@ y0 = S0, I0, R0
 ret = odeint(deriv, y0, t, args=(N, beta, gamma))
 S, I, R = ret.T
 
-results = pd.DataFrame({'Eligible': S, 'Ignore': I, 'Registered': R} )
+results = pd.DataFrame({'Eligible for Vaccination': S, 'Ignore': I, 'Registered for Vaccination': R} )
 results['Day'] = 1 + results.index
 results['Date']=pd.date_range(start='6/3/2020', periods= t_max+ 1)
 
