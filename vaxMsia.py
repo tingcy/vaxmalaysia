@@ -112,52 +112,7 @@ if data_file is not None:
                             fields=['Date'], empty='none')
 
 
-    # The basic line
-    line = alt.Chart(source, title="Malaysia: Estimated Vaccination Registration vs. Vaccine Supply").mark_line().encode(
-        x= alt.X('Date', title='Day'),
-        y= alt.Y('value', title='Value'),   
-        color = alt.Color('variable', 
-                scale=alt.Scale(domain=['Eligible for Vaccination',  'Registered for Vaccination','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Total Vaccine', 'Allocation for 1st Dose', 'Allocation for 2nd Dose']))
-    )
-    # Transparent selectors across the chart. This is what tells us
-    # the x-value of the cursor
-    selectors = alt.Chart(source).mark_point().encode(
-        x='Date',
-        opacity=alt.value(0),
-    ).add_selection(
-        nearest
-    ).interactive()
-
-    # Draw points on the line, and highlight based on selection
-    points = line.mark_point().encode(
-        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
-    )
-
-    # Draw text labels near the points, and highlight based on selection
-    text = line.mark_text(align='left', dx=5, dy=-5).encode(
-        text=alt.condition(nearest, 'value', alt.value(' '))
-    )
-
-    # Draw a rule at the location of the selection
-    rules = alt.Chart(source).mark_rule(color='gray').encode(
-        x='Date',
-    ).transform_filter(
-        nearest
-    )
-
-
-    # Put the five layers into a chart and bind the data
-    final = alt.layer(
-        line, selectors, points, rules, text
-    ).properties(
-        width=750, height=520
-    )
- 
-
-
-    st.title('Chart')
-
-    st.altair_chart(final, use_container_width=True)
+    # Plotly Express chart
 
     filter_list = ['Eligible for Vaccination', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'Cansino Cummulative', 'Sputnik Cummulative', 'Total Vaccine','Allocation for 1st Dose', 'Allocation for 2nd Dose']
     results = results[results.variable.isin(filter_list)] 
