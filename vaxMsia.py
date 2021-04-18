@@ -4,6 +4,7 @@ import pandas as pd
 import altair as alt
 from scipy.integrate import odeint
 import plotly.express as px
+import calendar
 
 st.set_page_config(layout="wide")
 
@@ -54,6 +55,7 @@ PrecAlloc = int(st.selectbox(
 
 data_file = st.file_uploader("Upload CSV", type=['xlsx'])
 if data_file is not None:
+    
     # Pfizer
     dose_pfizer = pd.read_excel(data_file, sheet_name='Pfizer')
     dose_pfizer.Date = pd.to_datetime(dose_pfizer.Date) 
@@ -73,6 +75,10 @@ if data_file is not None:
     # Sputnik
     dose_Sputnik = pd.read_excel(data_file, sheet_name='Sputnik')
     dose_Sputnik.Date = pd.to_datetime(dose_Sputnik.Date) 
+
+    # Covax
+    dose_Covax = pd.read_excel(data_file, sheet_name='Covax')
+    dose_Covax.Date = pd.to_datetime(dose_Covax.Date) 
 
     results = pd.merge(results, dose_pfizer, how="left", on=["Date"])
     results = results.fillna(0) 
@@ -94,44 +100,77 @@ if data_file is not None:
     results = results.fillna(0) 
     results = results.rename(columns = {'Dose': 'Sputnik'})
 
+
+    results = pd.merge(results, dose_Covax, how="left", on=["Date"])
+    results = results.fillna(0) 
+    results = results.rename(columns = {'Dose': 'Covax'})
+
     results['Pfizer Cummulative']=results.Pfizer.cumsum()
     results['Sinovac Cummulative']=results.Sinovac.cumsum()
     results['Cansino Cummulative']=results.Cansino.cumsum()
     results['AZ Cummulative']=results.AZ.cumsum()
     results['Sputnik Cummulative']=results.Sputnik.cumsum()
+    results['Covax Cummulative']=results.Covax.cumsum()
 
+    results_raw = results[['Date','Pfizer','Sinovac','Cansino','AZ','Sputnik','Covax']]
     results = results[['Date', 'Eligible for Vaccination', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Sputnik Cummulative']]
 
     results['Total Vaccine'] = results['Pfizer Cummulative'] + results['Sinovac Cummulative'] + results['Cansino Cummulative'] + results['AZ Cummulative'] + results['Sputnik Cummulative']
     results = results[(results.Date>'2020-12-15') & (results.Date<'2022-01-01')]
 
-    def allocation(a, b, c):
+
+    def allocation1stdose(a, b, c):
+        if a < b:
+            return (a*c)
+        else:
+            return (b*c)
+    
+    def allocation2nddose(a, b, c):
         if a < b:
             return (a*c)
         else:
             return (b*c)
 
-    results['Allocation for 1st Dose'] = results.apply(lambda row : allocation(row['Total Vaccine'], row['Registered for Vaccination'], PrecAlloc), axis = 1)
-    results['Allocation for 2nd Dose'] = results['Total Vaccine'] - results['Allocation for 1st Dose']
-        
+    results['Allocation for 1st Dose'] = results.apply(lambda row : allocation1stdose(row['Total Vaccine'], row['Registered for Vaccination'], PrecAlloc), axis = 1)
+    results['Allocation for 2nd Dose'] = results.apply(lambda row : allocation2nddose(row['Total Vaccine'], row['Registered for Vaccination'], 1-PrecAlloc), axis = 1)
+    #results['Allocation for 2nd Dose'] = results['Total Vaccine'] - results['Allocation for 1st Dose']
+
+    results_raw['Allocation for 1st Dose'] = results['Allocation for 1st Dose']
+    results_raw['Allocation for 2nd Dose'] = results['Allocation for 2nd Dose']
+
+    results_raw['month'] = pd.DatetimeIndex(results_raw['Date']).month
+    results_raw['month'] = results_raw['month'].apply(lambda x: calendar.month_abbr[x])    
+
     st.dataframe(results)
 
+    results_raw_long = pd.melt(results_raw[['month','Pfizer','Sinovac','Cansino','AZ','Sputnik','Covax']], id_vars=['month'], value_vars=['Pfizer','Sinovac','Cansino','AZ','Sputnik','Covax'])
     results = pd.melt(results, id_vars=['Date'], value_vars=['Eligible for Vaccination', 'Registered for Vaccination','Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'AZ Cummulative', 'Sputnik Cummulative', 'Total Vaccine', 'Allocation for 1st Dose', 'Allocation for 2nd Dose'])   
-    myChart = alt.data_transformers.disable_max_rows()
-    source = results[results.Date>'2020-10-01']
-    #source = df_melt[df_melt.variable.isin(['E','I'])]
+     
 
+    # Plotly Express chart - monthly supply
 
-    nearest = alt.selection(type='single', nearest=True, on='mouseover',
-                            fields=['Date'], empty='none')
+    results_raw_long=results_raw_long.groupby(by=["month","variable"]).sum().reset_index()
 
+    fig = px.bar(results_raw_long, x="month", color="variable",
+                y='value',
+                title="Monthly Vaccine Supply",  
+                barmode='stack',
+                height=600,
+                category_orders={"month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]},            
+                )
 
-    # Plotly Express chart
+    fig.update_layout(title = "Monthly Vaccine Supply for Malaysia",
+        xaxis_title = 'Month', yaxis_title = 'Vaccine Count', title_x=0.5, template="none",
+        width = 1000, height = 600)
 
-    filter_list = ['Eligible for Vaccination', 'Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'Cansino Cummulative', 'Sputnik Cummulative', 'Total Vaccine','Allocation for 1st Dose', 'Allocation for 2nd Dose']
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Plotly Express chart - daily estimation and vaccine supply
+
+    filter_list = ['Registered for Vaccination', 'Pfizer Cummulative', 'Sinovac Cummulative', 'Cansino Cummulative', 'Cansino Cummulative', 'Sputnik Cummulative', 'Total Vaccine','Allocation for 1st Dose', 'Allocation for 2nd Dose']
     results = results[results.variable.isin(filter_list)] 
-    fig = px.line(results, x="Date", y="value", color="variable", title='Malaysia: Estimated Vaccination Registration vs. Vaccine Supply', 
+    fig2 = px.line(results, x="Date", y="value", color="variable", title='Malaysia: Forecasted Registration vs. Vaccine Supply', 
             labels=dict(value="Value"), template="none",
             width=1200, height=700)
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True)
